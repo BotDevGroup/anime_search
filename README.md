@@ -1,1 +1,1 @@
-anime_search
+anime_search_plugin

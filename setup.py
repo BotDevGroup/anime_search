@@ -23,7 +23,7 @@ setup(
     long_description=readme,
     author="Albert Espinosa",
     author_email='AlbertEspinosaLeyba@Gmail.com',
-    url='https://github.com/BotDevGroup/anime_search_plugin',
+    url='https://github.com/BotDevGroup/anime_search',
     packages=[
         'anime_search',
     ],

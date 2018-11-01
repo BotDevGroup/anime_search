@@ -19,7 +19,7 @@ class AnimeSearch(Plugin):
         return {
             'short_name': self.name,
             'enabled': True,
-            'base_url': 'https://nyaa.si/?page=rss&q=My+Hero+Academia+S3+1080p&u=Golumpa'
+            'base_url': 'https://nyaa.si/?page=rss&q='
         }
 
     def configure(self, config):
@@ -32,8 +32,8 @@ class AnimeSearch(Plugin):
     def setup_schedules(self, adapter):
         pass
 
-    def fetch_anime(self):
-        url = self.config.get('base_url')
+    def fetch_anime(self, anime):
+        url = "{}{}".format(self.config.get('base_url'), anime)
         response = requests.get(url)
         return response.text
 
@@ -42,8 +42,16 @@ class AnimeSearch(Plugin):
 
 
     def on_anime(self, update, *args, **kwargs):
+        def g_list(l):
+            if not l:
+                return []
+            elif isinstance(l, list):
+                return l
+            else:
+                return [l]
+
         message = get_message(update)
-        fetched_response = self.fetch_anime()
+        fetched_response = self.fetch_anime(anime=message.text)
         data = self.parse_anime_search(fetched_response)
 
         rss = data.get('rss', None)
@@ -58,19 +66,28 @@ class AnimeSearch(Plugin):
             log.error("No channel")
             return
 
-        item = channel.get('item', None)
-        if item is None:
+        items = g_list(channel.get('item', None))
+        if items is None or len(items) == 0:
             message.reply_text(text="❌ Invalid response.")
             log.error("No item")
             return
 
         responses = []
-        title = item.get('title', '').strip()
-        responses.append("<b>{}</b>".format(title))
-        size = item.get('nyaa:size', '').strip()
-        responses.append("\n\n<b>Size:</b> {} | ".format(size))
-        link = item.get('link','').strip()
-        responses.append("<b>Download:</b> <a href='{}'>Torrent</a>".format(link))
-        release_date = item.get('pubDate','').strip()
-        responses.append("\n<b>Date:</b> {}".format(release_date))
-        message.reply_text(text="".join(responses), parse_mode='HTML')
+        for item in items:
+            response = []
+            title = item.get('title', '').strip()
+            response.append("➡ <b>{}</b>".format(title))
+            size = item.get('nyaa:size', '').strip()
+            response.append("\n\n<b>Size:</b> {} | ".format(size))
+            link = item.get('link','').strip()
+            response.append("<b>Download:</b> <a href='{}'>Torrent</a> 🔗".format(link))
+            release_date = item.get('pubDate','').strip()
+            response.append("\n<b>Date:</b> {}\n".format(release_date))
+
+            responses.append("".join(response))    
+
+        i = 0
+        while i < len(responses):
+            tmp = responses[i:i+10]
+            message.reply_text(text="\n".join(tmp), parse_mode='HTML')
+            i = i + 10;

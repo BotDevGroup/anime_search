@@ -86,8 +86,5 @@ class AnimeSearch(Plugin):
 
             responses.append("".join(response))    
 
-        i = 0
-        while i < len(responses):
-            tmp = responses[i:i+10]
-            message.reply_text(text="\n".join(tmp), parse_mode='HTML')
-            i = i + 10;
+        for i in range(0, len(responses), 10):
+            message.reply_text(text="\n".join(responses[i:i+10]), parse_mode='HTML')
